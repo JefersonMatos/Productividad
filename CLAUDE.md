@@ -19,7 +19,7 @@ Jeferson — Desarrollador / Ingeniero de Sistemas. Practicante Profesional en P
 | App Visitas NWP | Power App en desarrollo en Primax |
 | Los Cumpas de la Suerte | Proyecto del papá: sorteos por suscripción (similar a NohaysinSuerte / Joki) |
 | LIENZO01 | Marca de moda x arte: colecciones únicas en colaboración con artistas, stock limitado por colección |
-| Remates Judiciales | Modelo de negocio personal: comprar en remate judicial → arreglar → vender → repetir |
+| Remates Judiciales | Modelo de negocio personal: comprar inmueble en remate judicial → arreglar → vender → repetir |
 
 ## Proyectos
 | Nombre | Descripción |
