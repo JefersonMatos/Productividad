@@ -6,8 +6,8 @@ Términos, acrónimos y shorthand del trabajo de Jeferson.
 | Término | Significado |
 |---------|-------------|
 | PMO | Project Management Office |
-| WP | WorkPlace (sufijo en App Facturas WP) |
-| NWP | No WorkPlace (sufijo en App Visitas NWP) |
+| WP | White Pumpers (sufijo en App Facturas WP) |
+| NWP | Network Planing (sufijo en App Visitas NWP) |
 
 ## Proyectos / Codenames
 | Nombre | Qué es |
