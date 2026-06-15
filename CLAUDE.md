@@ -1,7 +1,7 @@
 # Memory
 
 ## Yo
-Jeferson — Desarrollador / Ingeniero de Sistemas. Practicante en Primax (área de sistemas).
+Jeferson — Desarrollador / Ingeniero de Sistemas. Practicante Profesional en Primax (área de TI).
 
 ## Personas
 | Quién | Rol |
