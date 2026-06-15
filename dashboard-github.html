@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productivity</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='2' width='24' height='28' rx='4' fill='%23faf9f5' stroke='%23D97757' stroke-width='2'/%3E%3Crect x='8' y='0' width='16' height='5' rx='2.5' fill='%23D97757'/%3E%3Cpath d='M9 13l3 3 5-5' fill='none' stroke='%23D97757' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#faf9f5;--bg2:#F5F4EF;--card:#ffffff;
+      --t1:#141413;--t2:#5c5c5a;--t3:#8c8c8a;
+      --accent:#D97757;--accent2:#c4684a;
+      --border:#e5e4df;--border2:#eeeee9;
+      --sh:rgba(20,20,19,.04);--sh2:rgba(20,20,19,.08)
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);height:100dvh;padding:20px 24px;line-height:1.5;overflow:hidden;display:flex;flex-direction:column}
+
+    /* HEADER */
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px}
+    .header-left{display:flex;align-items:center;gap:0;flex:1;min-width:0}
+    h1{font-size:1.35rem;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+    .subtitle{font-size:12px;color:var(--t3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .main-toggle{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:8px;margin-left:14px;flex-shrink:0}
+    .view-toggle{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:8px;margin-left:8px;flex-shrink:0}
+    .main-toggle button,.view-toggle button{background:transparent;border:none;padding:6px 14px;font-size:13px;color:var(--t3);border-radius:6px;cursor:pointer;font-family:inherit}
+    .main-toggle button.active,.view-toggle button.active{background:var(--card);color:var(--t1);box-shadow:0 1px 3px var(--sh)}
+    .buttons{display:flex;gap:8px;flex-shrink:0}
+    button{background:var(--card);color:var(--t1);border:1px solid var(--border);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;font-family:inherit;transition:all .15s}
+    button:hover{background:var(--bg2);border-color:var(--t3)}
+    button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    button.primary:hover{background:var(--accent2);border-color:var(--accent2)}
+    button:disabled{opacity:.4;cursor:not-allowed}
+
+    /* SETTINGS */
+    .settings-screen{display:flex;align-items:center;justify-content:center;flex:1}
+    .settings-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:32px;width:100%;max-width:460px;box-shadow:0 4px 24px var(--sh2)}
+    .settings-card h2{font-size:1.2rem;margin-bottom:6px}
+    .settings-card p{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6}
+    .form-row{margin-bottom:12px}
+    .form-row label{display:block;font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+    .form-row input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-size:14px;font-family:inherit;color:var(--t1);outline:none;transition:border-color .15s}
+    .form-row input:focus{border-color:var(--accent)}
+    .form-row input::placeholder{color:var(--t3)}
+    .settings-footer{display:flex;gap:10px;margin-top:20px}
+    .settings-footer button{flex:1;padding:11px;font-size:14px}
+    .settings-hint{font-size:12px;color:var(--t3);margin-top:14px;line-height:1.6}
+    .settings-hint a{color:var(--accent);text-decoration:none}
+    .settings-hint a:hover{text-decoration:underline}
+
+    /* TASKS BOARD */
+    .board{display:flex;gap:18px;overflow-x:auto;overflow-y:hidden;padding-bottom:16px;flex:1;min-height:0}
+    .column{background:var(--bg2);border-radius:12px;min-width:290px;max-width:290px;display:flex;flex-direction:column;max-height:100%}
+    .col-header{padding:13px 15px;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);display:flex;justify-content:space-between;align-items:center}
+    .col-header .count{background:var(--card);padding:2px 9px;border-radius:10px;font-size:12px;color:var(--t3);font-weight:500}
+    .cards{flex:1;overflow-y:auto;padding:0 9px 9px;min-height:80px}
+    .cards.drag-over{background:rgba(217,119,87,.06);border-radius:8px}
+    .task-card{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:12px 13px;margin-bottom:7px;cursor:grab;transition:all .15s;box-shadow:0 1px 3px var(--sh);position:relative}
+    .task-card:hover{box-shadow:0 4px 12px var(--sh2);border-color:var(--border)}
+    .task-card.dragging{opacity:.5;transform:rotate(2deg)}
+    .card-row{display:flex;align-items:flex-start;gap:9px}
+    .card-title{font-size:14px;font-weight:500;flex:1;cursor:pointer}
+    .card-note{font-size:12px;color:var(--t3);margin-top:5px;margin-left:27px;cursor:pointer}
+    .card-note.ph{font-style:italic;display:none}
+    .task-card:hover .card-note.ph{display:block}
+    .del-btn{display:none;background:transparent;border:none;color:var(--t3);font-size:16px;padding:0 4px;line-height:1;border-radius:4px;cursor:pointer;position:absolute;top:7px;right:7px}
+    .task-card:hover .del-btn{display:block}
+    .del-btn:hover{color:var(--accent);background:var(--bg2)}
+    .add-card-btn{margin:0 9px 9px}
+    .add-card-btn button{width:100%;background:transparent;border:2px dashed var(--border);color:var(--t3);font-weight:500}
+    .add-card-btn button:hover{border-color:var(--accent);color:var(--accent);background:transparent}
+    .new-task-input{width:100%;background:var(--card);border:2px solid var(--accent);border-radius:8px;padding:9px 11px;color:var(--t1);font-size:14px;font-family:inherit;resize:none;outline:none}
+    .add-col-btn{min-width:180px;max-width:180px;background:transparent;border:2px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:13px;font-weight:500;transition:all .15s}
+    .add-col-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* TASKS LIST */
+    .list-view{max-width:740px;margin:0 auto;flex:1;overflow-y:auto;min-height:0;width:100%}
+    .list-section{margin-bottom:22px}
+    .list-section-hdr{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);padding:4px 0;margin-bottom:4px;display:flex;justify-content:space-between}
+    .list-section-hdr span:first-child{cursor:pointer}
+    .list-section-hdr span:first-child:hover{color:var(--t1)}
+    .list-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:5px;background:var(--card);border:1px solid var(--border2);border-radius:10px;cursor:grab;position:relative;transition:all .15s;box-shadow:0 1px 3px var(--sh)}
+    .list-item:hover{box-shadow:0 4px 12px var(--sh2);border-color:var(--border)}
+    .list-item.dragging{opacity:.5}
+    .list-item-content{flex:1;min-width:0}
+    .list-item-title{font-size:14px;cursor:pointer}
+    .list-item-title.done{text-decoration:line-through;color:var(--t3)}
+    .list-item-note{font-size:12px;color:var(--t3);margin-top:3px;cursor:pointer}
+    .list-item-note.ph{font-style:italic;display:none}
+    .list-item:hover .list-item-note.ph{display:block}
+    .list-del{display:none;background:transparent;border:none;color:var(--t3);cursor:pointer;padding:3px 6px;border-radius:4px;position:absolute;top:7px;right:7px;font-size:15px}
+    .list-item:hover .list-del{display:block}
+    .list-del:hover{color:var(--accent);background:var(--bg2)}
+    .list-drop-line{height:3px;background:var(--accent);border-radius:2px;margin:2px -12px}
+    .quick-add{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:2px solid var(--border);margin-bottom:18px}
+    .quick-add .checkbox{opacity:.3}
+    .quick-add-input{flex:1;background:transparent;border:none;font-size:14px;color:var(--t1);font-family:inherit;outline:none}
+    .quick-add-input::placeholder{color:var(--t3)}
+    .section-badge{font-size:12px;color:var(--t3);background:var(--bg2);padding:3px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);white-space:nowrap}
+    .section-badge:hover{border-color:var(--accent)}
+    .section-picker{position:fixed;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px var(--sh2);padding:4px;z-index:200}
+    .section-picker button{display:block;width:100%;text-align:left;padding:8px 12px;font-size:13px;background:transparent;border:none;border-radius:6px}
+    .section-picker button:hover{background:var(--bg2)}
+    .list-add-section{padding:13px;border:2px dashed var(--border);border-radius:8px;text-align:center;cursor:pointer;color:var(--t3);font-size:14px;font-weight:500;margin-top:10px;transition:all .15s}
+    .list-add-section:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* CHECKBOX */
+    .checkbox{width:18px;height:18px;min-width:18px;border:2px solid var(--border);border-radius:5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:var(--card);flex-shrink:0}
+    .checkbox:hover{border-color:var(--accent)}
+    .checkbox.checked{background:var(--accent);border-color:var(--accent)}
+    .checkbox.checked::after{content:'';width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-bottom:2px}
+
+    /* MEMORY */
+    .memory-panel{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    .memory-tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:8px;margin-bottom:14px;flex-wrap:wrap;flex-shrink:0}
+    .memory-tabs button{background:transparent;border:none;padding:7px 14px;font-size:13px;color:var(--t3);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+    .memory-tabs button:hover{color:var(--t1)}
+    .memory-tabs button.active{background:var(--card);color:var(--t1);box-shadow:0 1px 3px var(--sh)}
+    .memory-content{flex:1;overflow-y:auto;min-height:0}
+    .memory-content::-webkit-scrollbar{width:5px}
+    .memory-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    .mem-file-card{background:var(--card);border:1px solid var(--border2);border-radius:10px;margin-bottom:14px;box-shadow:0 1px 3px var(--sh);overflow:hidden}
+    .mem-file-hdr{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid var(--border2)}
+    .mem-file-hdr:hover{background:var(--bg2)}
+    .mem-file-title{font-size:14px;font-weight:600}
+    .mem-file-body{padding:16px;font-size:13px;line-height:1.6;color:var(--t2)}
+    .mem-edit-btn{font-size:12px;padding:5px 12px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--t3)}
+    .mem-edit-btn:hover{border-color:var(--accent);color:var(--accent);background:transparent}
+    .markdown-content h1{font-size:1.3em;margin:14px 0 6px;color:var(--t1)}
+    .markdown-content h2{font-size:1.1em;margin:12px 0 5px;color:var(--t1)}
+    .markdown-content h3{font-size:1em;margin:10px 0 4px;color:var(--t2)}
+    .markdown-content p{margin:6px 0}
+    .markdown-content ul,.markdown-content ol{margin:6px 0 6px 18px}
+    .markdown-content li{margin:3px 0}
+    .markdown-content strong{color:var(--t1)}
+    .markdown-content table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+    .markdown-content th,.markdown-content td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--border2)}
+    .markdown-content th{background:var(--bg2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--t2)}
+    .markdown-content code{background:var(--bg2);padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:.92em}
+    .markdown-content pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto;margin:8px 0;border:1px solid var(--border2)}
+    .mem-empty{text-align:center;padding:48px 24px;color:var(--t3);font-size:14px}
+    .mem-loading{text-align:center;padding:48px 24px;color:var(--t3);font-size:14px}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,20,19,.5);z-index:300;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--card);border-radius:12px;width:90%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(20,20,19,.2)}
+    .modal-hdr{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .modal-hdr h3{font-size:16px;font-weight:600}
+    .modal-close{background:transparent;border:none;color:var(--t3);font-size:22px;cursor:pointer;padding:0;line-height:1}
+    .modal-close:hover{color:var(--t1)}
+    .modal-body{padding:18px;overflow-y:auto;flex:1}
+    .modal-body textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--t1);font-size:13px;font-family:ui-monospace,monospace;line-height:1.5;min-height:320px;resize:vertical;outline:none}
+    .modal-body textarea:focus{border-color:var(--accent)}
+    .modal-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+    /* STATUS */
+    .status-bar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--t1);color:var(--bg);padding:10px 22px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s;box-shadow:0 4px 20px rgba(20,20,19,.15);z-index:400;white-space:nowrap}
+    .status-bar.visible{opacity:1}
+    .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-left:7px;transition:background .3s;vertical-align:middle}
+    .sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
+    .sync-dot.ok{background:#22c55e}
+    .sync-dot.err{background:#ef4444}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* SCROLLBARS */
+    .cards::-webkit-scrollbar,.list-view::-webkit-scrollbar{width:5px}
+    .cards::-webkit-scrollbar-thumb,.list-view::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+    @media(max-width:600px){
+      body{padding:12px 14px}
+      h1{font-size:1.1rem}
+      .main-toggle button,.view-toggle button{padding:5px 10px;font-size:12px}
+      .buttons button{padding:8px 10px;font-size:13px}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <svg width="24" height="24" viewBox="0 0 32 32" style="margin-right:10px;flex-shrink:0">
+      <rect x="4" y="2" width="24" height="28" rx="4" fill="#faf9f5" stroke="#D97757" stroke-width="2"/>
+      <rect x="8" y="0" width="16" height="5" rx="2.5" fill="#D97757"/>
+      <path d="M9 13l3 3 5-5" fill="none" stroke="#D97757" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="20" y="12" width="5" height="2" rx="1" fill="#c4c4c2"/>
+      <rect x="9" y="20" width="10" height="2" rx="1" fill="#c4c4c2"/>
+    </svg>
+    <div style="min-width:0">
+      <h1>Productivity <span class="sync-dot" id="syncDot"></span></h1>
+      <div class="subtitle" id="repoLabel"></div>
+    </div>
+    <div class="main-toggle" id="mainToggle" style="display:none">
+      <button id="tasksTabBtn" class="active">Tasks</button>
+      <button id="memoryTabBtn">Memory</button>
+    </div>
+    <div class="view-toggle" id="viewToggle" style="display:none">
+      <button id="boardBtn" class="active">Board</button>
+      <button id="listBtn">List</button>
+    </div>
+  </div>
+  <div class="buttons">
+    <button id="refreshBtn" style="display:none;padding:9px 12px" title="Refresh">↻</button>
+    <button id="settingsBtn" style="padding:9px 12px" title="Settings">⚙</button>
+    <button id="saveBtn" class="primary" disabled style="display:none">Save</button>
+  </div>
+</header>
+
+<!-- SETTINGS -->
+<div class="settings-screen" id="settingsScreen">
+  <div class="settings-card">
+    <h2>Connect GitHub</h2>
+    <p>Your tasks and memory will be stored in a GitHub repo — accessible from any device including iPhone.</p>
+    <div class="form-row"><label>Personal Access Token</label><input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx"></div>
+    <div class="form-row"><label>GitHub Username</label><input type="text" id="cfgOwner" placeholder="tu-usuario"></div>
+    <div class="form-row"><label>Repository Name</label><input type="text" id="cfgRepo" placeholder="my-tasks"></div>
+    <div class="form-row"><label>Branch</label><input type="text" id="cfgBranch" value="main"></div>
+    <div class="form-row"><label>Tasks file path</label><input type="text" id="cfgPath" value="TASKS.md"></div>
+    <div class="settings-footer">
+      <button id="cancelSettings" style="display:none">Cancel</button>
+      <button id="saveSettings" class="primary">Connect</button>
+    </div>
+    <div class="settings-hint">Create a token at <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens</a> with <strong>repo</strong> scope.<br>Token stored only in this browser's localStorage.</div>
+  </div>
+</div>
+
+<!-- TASKS PANEL -->
+<div id="tasksPanel" style="display:none;flex:1;min-height:0;flex-direction:column">
+  <div class="board" id="board"></div>
+  <div class="list-view" id="listView" style="display:none"></div>
+</div>
+
+<!-- MEMORY PANEL -->
+<div id="memoryPanel" style="display:none;flex:1;min-height:0;flex-direction:column">
+  <div class="memory-panel">
+    <div class="memory-tabs" id="memoryTabs"></div>
+    <div class="memory-content" id="memoryContent"></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="modalTitle">Edit</h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body"><textarea id="modalTA" spellcheck="false"></textarea></div>
+    <div class="modal-footer">
+      <button id="modalCancel">Cancel</button>
+      <button id="modalSave" class="primary">Save to GitHub</button>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="status"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════
+const STORAGE_KEY = 'gh_tasks_config_v2';
+let cfg = null;
+let sections = [], tasks = {}, fileSha = null;
+let hasChanges = false, isSaving = false, saveTimer = null;
+let currentView = 'board', activeTab = 'tasks';
+let quickAddSection = null;
+
+// Memory state
+let memoryFiles = {}; // path -> { content, sha }
+let activeMemTab = null;
+
+// ── ELEMENTS ──
+const settingsScreen = document.getElementById('settingsScreen');
+const tasksPanel = document.getElementById('tasksPanel');
+const memoryPanel = document.getElementById('memoryPanel');
+const board = document.getElementById('board');
+const listView = document.getElementById('listView');
+const syncDot = document.getElementById('syncDot');
+const repoLabel = document.getElementById('repoLabel');
+const saveBtn = document.getElementById('saveBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const mainToggle = document.getElementById('mainToggle');
+const viewToggle = document.getElementById('viewToggle');
+const statusEl = document.getElementById('status');
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function showStatus(msg, dur=2000){statusEl.textContent=msg;statusEl.classList.add('visible');setTimeout(()=>statusEl.classList.remove('visible'),dur)}
+function setSyncState(s){syncDot.className='sync-dot '+s}
+function esc(t){const d=document.createElement('div');d.textContent=t||'';return d.innerHTML}
+function toB64(s){return btoa(unescape(encodeURIComponent(s)))}
+function fromB64(s){return decodeURIComponent(escape(atob(s.replace(/\n/g,''))))}
+
+// ═══════════════════════════════════════════
+// GITHUB API
+// ═══════════════════════════════════════════
+function apiBase(){return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents`}
+function apiHeaders(){return{'Authorization':`token ${cfg.token}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}}
+
+async function ghGet(path){
+  const r=await fetch(`${apiBase()}/${path}?ref=${cfg.branch}&t=${Date.now()}`,{headers:apiHeaders()});
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+async function ghPut(path,content,sha,message='Update'){
+  const body={message,content:toB64(content),branch:cfg.branch};
+  if(sha)body.sha=sha;
+  const r=await fetch(`${apiBase()}/${path}`,{method:'PUT',headers:apiHeaders(),body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.json();throw new Error(e.message||'HTTP '+r.status)}
+  return r.json();
+}
+
+async function ghListDir(path){
+  const r=await fetch(`${apiBase()}/${path}?ref=${cfg.branch}`,{headers:apiHeaders()});
+  if(r.status===404)return[];
+  if(!r.ok)return[];
+  const data=await r.json();
+  return Array.isArray(data)?data:[];
+}
+
+// ═══════════════════════════════════════════
+// TASKS — PARSE & RENDER
+// ═══════════════════════════════════════════
+function secId(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+
+function parseMarkdown(content){
+  const secs=[],tsk={};let curId=null;
+  for(const line of content.split('\n')){
+    const h=line.match(/^## \*{0,2}(.+?)\*{0,2}$/);
+    if(h){const name=h[1].trim(),id=secId(name);curId=id;if(!tsk[id]){secs.push({id,name});tsk[id]=[]};continue}
+    if(curId&&line.match(/^- \[[ xX]\]/)){
+      const checked=!!line.match(/\[[xX]\]/);let text=line.replace(/^- \[[ xX]\]\s*/,'');let title=text,note='';
+      const bm=text.match(/^\*\*(.+?)\*\*(.*)$/);if(bm){title=bm[1];note=bm[2].replace(/^\s*-\s*/,'').trim()}
+      tsk[curId].push({id:Date.now()+Math.random(),title,note,checked,section:curId})
+    }
+  }
+  return{sections:secs,tasks:tsk}
+}
+
+function toMarkdown(){
+  let md='# Tasks\n';
+  for(const s of sections){md+=`\n## ${s.name}\n`;for(const t of(tasks[s.id]||[])){const cb=t.checked?'[x]':'[ ]';const note=t.note?` - ${t.note}`:'';md+=`- ${cb} **${t.title}**${note}\n`}}
+  return md.trimEnd()+'\n'
+}
+
+// TASKS LOAD
+async function loadTasks(){
+  setSyncState('syncing');
+  try{
+    const data=await ghGet(cfg.path);
+    if(!data){
+      const empty='# Tasks\n\n## Por hacer\n\n## En progreso\n\n## Completado\n';
+      const res=await ghPut(cfg.path,empty,null,'Initialize TASKS.md');
+      fileSha=res.content.sha;
+      const r=parseMarkdown(empty);sections=r.sections;tasks=r.tasks;
+    }else{
+      fileSha=data.sha;const r=parseMarkdown(fromB64(data.content));sections=r.sections;tasks=r.tasks;
+    }
+    if(!quickAddSection&&sections.length)quickAddSection=sections[0].id;
+    setSyncState('ok');
+  }catch(e){setSyncState('err');showStatus('Error: '+e.message,3000)}
+}
+
+async function refreshTasks(){
+  setSyncState('syncing');
+  try{
+    const data=await ghGet(cfg.path);if(!data)return;
+    fileSha=data.sha;const r=parseMarkdown(fromB64(data.content));sections=r.sections;tasks=r.tasks;
+    setSyncState('ok');renderTasks();showStatus('Refreshed ✓');
+  }catch(e){setSyncState('err');showStatus('Refresh error: '+e.message,3000)}
+}
+
+// SAVE
+function markChanged(){
+  hasChanges=true;saveBtn.disabled=false;
+  if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(autoSave,800);
+}
+
+async function autoSave(){
+  if(!hasChanges||isSaving)return;isSaving=true;
+  setSyncState('syncing');
+  try{
+    const res=await ghPut(cfg.path,toMarkdown(),fileSha,'Update TASKS.md');
+    fileSha=res.content.sha;hasChanges=false;saveBtn.disabled=true;setSyncState('ok');showStatus('Saved ✓');
+  }catch(e){setSyncState('err');showStatus('Save error: '+e.message,3000)}
+  isSaving=false;
+}
+
+// ═══════════════════════════════════════════
+// MEMORY LOAD
+// ═══════════════════════════════════════════
+let memTabs=[]; // [{id, label, type:'file'|'dir', path, files:[]}]
+
+async function loadMemory(){
+  document.getElementById('memoryContent').innerHTML='<div class="mem-loading">Loading memory…</div>';
+  memTabs=[];memoryFiles={};
+
+  // Load CLAUDE.md
+  try{
+    const data=await ghGet('CLAUDE.md');
+    if(data){
+      memoryFiles['CLAUDE.md']={content:fromB64(data.content),sha:data.sha};
+      memTabs.push({id:'claude',label:'CLAUDE.md',type:'file',path:'CLAUDE.md'});
+    }
+  }catch(e){}
+
+  // List memory/ directory
+  try{
+    const entries=await ghListDir('memory');
+    const mdFiles=entries.filter(e=>e.type==='file'&&e.name.endsWith('.md'));
+    const dirs=entries.filter(e=>e.type==='dir');
+
+    // Top-level .md files in memory/
+    for(const f of mdFiles){
+      const path='memory/'+f.name;
+      const data=await ghGet(path);
+      if(data){
+        memoryFiles[path]={content:fromB64(data.content),sha:data.sha};
+        memTabs.push({id:'mem-'+f.name,label:f.name.replace('.md',''),type:'file',path});
+      }
+    }
+
+    // Subdirectories
+    for(const dir of dirs){
+      const subEntries=await ghListDir('memory/'+dir.name);
+      const subFiles=subEntries.filter(e=>e.type==='file'&&e.name.endsWith('.md'));
+      const tab={id:'dir-'+dir.name,label:dir.name,type:'dir',dirPath:'memory/'+dir.name,files:[]};
+      for(const f of subFiles){
+        const path='memory/'+dir.name+'/'+f.name;
+        const data=await ghGet(path);
+        if(data){
+          memoryFiles[path]={content:fromB64(data.content),sha:data.sha};
+          tab.files.push(path);
+        }
+      }
+      if(tab.files.length>0)memTabs.push(tab);
+    }
+  }catch(e){}
+
+  renderMemoryTabs();
+  if(memTabs.length>0){
+    activeMemTab=memTabs[0].id;
+    renderMemoryContent();
+  }else{
+    document.getElementById('memoryContent').innerHTML='<div class="mem-empty">No memory files found.<br>Add CLAUDE.md or a memory/ folder to your repo.</div>';
+  }
+}
+
+function renderMemoryTabs(){
+  const container=document.getElementById('memoryTabs');
+  container.innerHTML='';
+  for(const tab of memTabs){
+    const btn=document.createElement('button');
+    btn.textContent=tab.label;
+    if(tab.id===activeMemTab)btn.classList.add('active');
+    btn.addEventListener('click',()=>{activeMemTab=tab.id;renderMemoryTabs();renderMemoryContent()});
+    container.appendChild(btn);
+  }
+  // Refresh button
+  const rb=document.createElement('button');
+  rb.textContent='↻ Refresh';rb.style.marginLeft='auto';
+  rb.addEventListener('click',async()=>{await loadMemory()});
+  container.appendChild(rb);
+}
+
+function renderMemoryContent(){
+  const container=document.getElementById('memoryContent');
+  const tab=memTabs.find(t=>t.id===activeMemTab);
+  if(!tab){container.innerHTML='';return}
+
+  if(tab.type==='file'){
+    const file=memoryFiles[tab.path];
+    if(!file){container.innerHTML='<div class="mem-empty">File not loaded.</div>';return}
+    container.innerHTML=`
+      <div class="mem-file-card">
+        <div class="mem-file-hdr">
+          <span class="mem-file-title">${esc(tab.path)}</span>
+          <button class="mem-edit-btn" onclick="openMemEdit('${tab.path}')">Edit</button>
+        </div>
+        <div class="mem-file-body markdown-content">${renderMd(file.content)}</div>
+      </div>`;
+  }else if(tab.type==='dir'){
+    let html='';
+    for(const path of tab.files){
+      const file=memoryFiles[path];if(!file)continue;
+      const fname=path.split('/').pop();
+      html+=`
+        <div class="mem-file-card">
+          <div class="mem-file-hdr">
+            <span class="mem-file-title">${esc(fname)}</span>
+            <button class="mem-edit-btn" onclick="openMemEdit('${path}')">Edit</button>
+          </div>
+          <div class="mem-file-body markdown-content">${renderMd(file.content)}</div>
+        </div>`;
+    }
+    if(!html)html='<div class="mem-empty">No files in this directory.</div>';
+    // Add new file button
+    html+=`<button onclick="openMemNew('${tab.dirPath}')" style="margin-top:4px;width:100%;background:transparent;border:2px dashed var(--border);color:var(--t3);padding:12px;border-radius:10px;font-weight:500" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--t3)'">+ Add file to ${esc(tab.label)}</button>`;
+    container.innerHTML=html;
+  }
+}
+
+// MARKDOWN RENDER
+function renderMd(md){
+  let h=esc(md);
+  h=h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  h=h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  // Tables
+  h=h.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g,m=>{
+    const lines=m.trim().split('\n');
+    const hdrs=lines[0].split('|').map(c=>c.trim()).filter(c=>c);
+    const rows=lines.slice(2).map(r=>r.split('|').map(c=>c.trim()).filter(c=>c));
+    let t='<table><thead><tr>'+hdrs.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>';
+    rows.forEach(r=>{t+='<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>'});
+    return t+'</tbody></table>';
+  });
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  h=h.replace(/^(?!<[hultop]|$)(.+)$/gm,'<p>$1</p>');
+  h=h.replace(/<p>\s*<\/p>/g,'');
+  return h;
+}
+
+// MEMORY EDIT MODAL
+let modalEditPath=null,modalIsNew=false,modalNewDir=null;
+
+window.openMemEdit=function(path){
+  const file=memoryFiles[path];if(!file)return;
+  modalEditPath=path;modalIsNew=false;
+  document.getElementById('modalTitle').textContent='Edit '+path.split('/').pop();
+  document.getElementById('modalTA').value=file.content;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+window.openMemNew=function(dirPath){
+  modalIsNew=true;modalNewDir=dirPath;modalEditPath=null;
+  document.getElementById('modalTitle').textContent='New file in '+dirPath;
+  document.getElementById('modalTA').value='# New Entry\n\n';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('modalCancel').addEventListener('click',closeModal);
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal()});
+
+document.getElementById('modalSave').addEventListener('click',async()=>{
+  const content=document.getElementById('modalTA').value;
+  setSyncState('syncing');
+  try{
+    if(modalIsNew){
+      const fname=prompt('Filename (without .md):');
+      if(!fname){return}
+      const path=modalNewDir+'/'+(fname.endsWith('.md')?fname:fname+'.md');
+      const res=await ghPut(path,content,null,'Add '+path.split('/').pop());
+      memoryFiles[path]={content,sha:res.content.sha};
+      await loadMemory();
+    }else{
+      const res=await ghPut(modalEditPath,content,memoryFiles[modalEditPath].sha,'Update '+modalEditPath.split('/').pop());
+      memoryFiles[modalEditPath]={content,sha:res.content.sha};
+      renderMemoryContent();
+    }
+    setSyncState('ok');showStatus('Saved ✓');closeModal();
+  }catch(e){setSyncState('err');showStatus('Save error: '+e.message,3000)}
+});
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// ═══════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════
+function switchMainTab(tab){
+  activeTab=tab;
+  document.getElementById('tasksTabBtn').classList.toggle('active',tab==='tasks');
+  document.getElementById('memoryTabBtn').classList.toggle('active',tab==='memory');
+  tasksPanel.style.display=tab==='tasks'?'flex':'none';
+  memoryPanel.style.display=tab==='memory'?'flex':'none';
+  viewToggle.style.display=tab==='tasks'?'flex':'none';
+  saveBtn.style.display=tab==='tasks'?'':'none';
+  if(tab==='memory'&&memTabs.length===0)loadMemory();
+}
+
+document.getElementById('tasksTabBtn').addEventListener('click',()=>switchMainTab('tasks'));
+document.getElementById('memoryTabBtn').addEventListener('click',()=>switchMainTab('memory'));
+
+// VIEW SWITCH
+document.getElementById('boardBtn').addEventListener('click',()=>switchView('board'));
+document.getElementById('listBtn').addEventListener('click',()=>switchView('list'));
+
+function switchView(v){
+  currentView=v;
+  document.getElementById('boardBtn').classList.toggle('active',v==='board');
+  document.getElementById('listBtn').classList.toggle('active',v==='list');
+  board.style.display=v==='board'?'flex':'none';
+  listView.style.display=v==='list'?'block':'none';
+  renderTasks();
+}
+
+// ═══════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════
+function loadConfig(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null}}
+function saveConfig(c){localStorage.setItem(STORAGE_KEY,JSON.stringify(c))}
+
+document.getElementById('saveSettings').addEventListener('click',async()=>{
+  const token=document.getElementById('cfgToken').value.trim();
+  const owner=document.getElementById('cfgOwner').value.trim();
+  const repo=document.getElementById('cfgRepo').value.trim();
+  const branch=document.getElementById('cfgBranch').value.trim()||'main';
+  const path=document.getElementById('cfgPath').value.trim()||'TASKS.md';
+  if(!token||!owner||!repo){showStatus('Fill all fields',2000);return}
+  cfg={token,owner,repo,branch,path};saveConfig(cfg);
+  settingsScreen.style.display='none';
+  document.getElementById('cancelSettings').style.display='';
+  repoLabel.textContent=`${owner}/${repo}`;
+  await initApp();
+});
+
+document.getElementById('cancelSettings').addEventListener('click',()=>{
+  settingsScreen.style.display='none';showApp();
+});
+
+document.getElementById('settingsBtn').addEventListener('click',()=>{
+  if(cfg){
+    document.getElementById('cfgToken').value=cfg.token;
+    document.getElementById('cfgOwner').value=cfg.owner;
+    document.getElementById('cfgRepo').value=cfg.repo;
+    document.getElementById('cfgBranch').value=cfg.branch;
+    document.getElementById('cfgPath').value=cfg.path;
+    document.getElementById('cancelSettings').style.display='';
+  }
+  hideApp();settingsScreen.style.display='flex';
+});
+
+refreshBtn.addEventListener('click',()=>{
+  if(activeTab==='tasks')refreshTasks();else loadMemory();
+});
+saveBtn.addEventListener('click',autoSave);
+window.addEventListener('focus',()=>{if(cfg&&!hasChanges&&activeTab==='tasks')refreshTasks()});
+
+function showApp(){
+  settingsScreen.style.display='none';
+  mainToggle.style.display='';
+  viewToggle.style.display=activeTab==='tasks'?'flex':'none';
+  refreshBtn.style.display='';
+  saveBtn.style.display=activeTab==='tasks'?'':'none';
+  tasksPanel.style.display=activeTab==='tasks'?'flex':'none';
+  memoryPanel.style.display=activeTab==='memory'?'flex':'none';
+}
+function hideApp(){
+  tasksPanel.style.display='none';memoryPanel.style.display='none';
+  mainToggle.style.display='none';viewToggle.style.display='none';
+  refreshBtn.style.display='none';saveBtn.style.display='none';
+}
+
+// ═══════════════════════════════════════════
+// RENDER TASKS (BOARD + LIST)
+// ═══════════════════════════════════════════
+function renderTasks(){if(currentView==='board')renderBoard();else renderList()}
+
+// BOARD
+function renderBoard(){
+  board.innerHTML='';
+  for(const s of sections)board.appendChild(buildColumn(s.id,s.name,tasks[s.id]||[]));
+  const addCol=document.createElement('div');addCol.className='add-col-btn';addCol.textContent='+ Add section';
+  addCol.addEventListener('click',()=>promptAddSection(addCol));board.appendChild(addCol);
+}
+
+function buildColumn(id,name,items){
+  const col=document.createElement('div');col.className='column';
+  col.innerHTML=`<div class="col-header"><span class="col-title" style="cursor:pointer">${esc(name)}</span><span class="count">${items.length}</span></div><div class="cards" data-col="${id}"></div><div class="add-card-btn"><button>+ Add task</button></div>`;
+  col.querySelector('.col-title').addEventListener('click',e=>editSectionName(e.target,id));
+  const cardsEl=col.querySelector('.cards');
+  for(const t of items)cardsEl.appendChild(buildCard(t));
+  const getPos=e=>{const all=[...cardsEl.querySelectorAll('.task-card:not(.dragging)')];let ib=null,idx=all.length;for(let i=0;i<all.length;i++){const r=all[i].getBoundingClientRect();if(e.clientY<r.top+r.height/2){ib=all[i];idx=i;break}}return{ib,idx}};
+  const showInd=e=>{col.querySelectorAll('.drop-ind').forEach(x=>x.remove());const{ib}=getPos(e);const d=document.createElement('div');d.className='drop-ind';d.style.cssText='height:3px;background:var(--accent);border-radius:2px;margin:3px 0;';ib?cardsEl.insertBefore(d,ib):cardsEl.appendChild(d)};
+  col.addEventListener('dragover',e=>{e.preventDefault();cardsEl.classList.add('drag-over');showInd(e)});
+  col.addEventListener('dragleave',e=>{if(!col.contains(e.relatedTarget)){cardsEl.classList.remove('drag-over');col.querySelectorAll('.drop-ind').forEach(x=>x.remove())}});
+  col.addEventListener('drop',e=>{e.preventDefault();cardsEl.classList.remove('drag-over');col.querySelectorAll('.drop-ind').forEach(x=>x.remove());const tid=parseFloat(e.dataTransfer.getData('text/plain'));if(!tid)return;moveTask(tid,id,getPos(e).idx)});
+  col.querySelector('.add-card-btn button').addEventListener('click',()=>addTaskToCol(id,cardsEl));
+  return col;
+}
+
+function buildCard(task){
+  const c=document.createElement('div');c.className='task-card';c.draggable=true;
+  c.innerHTML=`<button class="del-btn">&times;</button><div class="card-row"><span class="checkbox ${task.checked?'checked':''}"></span><span class="card-title">${esc(task.title)}</span></div>${task.note?`<div class="card-note">${esc(task.note)}</div>`:'<div class="card-note ph">+ Add note</div>'}`;
+  c.querySelector('.checkbox').addEventListener('click',()=>{task.checked=!task.checked;markChanged();renderTasks()});
+  c.querySelector('.card-title').addEventListener('click',()=>inlineEdit(c.querySelector('.card-title'),v=>{task.title=v;markChanged();renderTasks()},task.title));
+  c.querySelector('.card-note').addEventListener('click',()=>inlineEdit(c.querySelector('.card-note'),v=>{task.note=v;markChanged();renderTasks()},task.note||'','Add note...'));
+  c.querySelector('.del-btn').addEventListener('click',()=>deleteTask(task));
+  c.addEventListener('dragstart',e=>{c.classList.add('dragging');e.dataTransfer.setData('text/plain',task.id)});
+  c.addEventListener('dragend',()=>c.classList.remove('dragging'));
+  return c;
+}
+
+function addTaskToCol(sectionId,cardsEl){
+  const ta=document.createElement('textarea');ta.className='new-task-input';ta.placeholder='Task title...';ta.rows=2;
+  cardsEl.appendChild(ta);ta.focus();
+  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();const title=ta.value.trim();if(title){tasks[sectionId]=tasks[sectionId]||[];tasks[sectionId].push({id:Date.now()+Math.random(),title,note:'',checked:false,section:sectionId});markChanged()}renderTasks()}else if(e.key==='Escape')ta.remove()});
+  ta.addEventListener('blur',()=>setTimeout(()=>ta.remove(),100));
+}
+
+// LIST
+function renderList(){
+  listView.innerHTML='';
+  if(!quickAddSection&&sections.length)quickAddSection=sections[0].id;
+  const qa=document.createElement('div');qa.className='quick-add';
+  const sn=sections.find(s=>s.id===quickAddSection)?.name||'Select';
+  qa.innerHTML=`<span class="checkbox"></span><input class="quick-add-input" placeholder="Add a task..." id="qaInput"><span class="section-badge" id="qaBadge">${esc(sn)}</span>`;
+  listView.appendChild(qa);
+  document.getElementById('qaInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){const title=e.target.value.trim();tasks[quickAddSection]=tasks[quickAddSection]||[];tasks[quickAddSection].unshift({id:Date.now()+Math.random(),title,note:'',checked:false,section:quickAddSection});e.target.value='';markChanged();renderTasks();setTimeout(()=>document.getElementById('qaInput')?.focus(),10)}});
+  document.getElementById('qaBadge').addEventListener('click',e=>showSectionPicker(e.target));
+  for(const s of sections){
+    const sec=document.createElement('div');sec.className='list-section';sec.dataset.sectionId=s.id;
+    const hdr=document.createElement('div');hdr.className='list-section-hdr';
+    hdr.innerHTML=`<span data-sid="${s.id}">${esc(s.name)}</span><span>${(tasks[s.id]||[]).length}</span>`;
+    hdr.querySelector('span').addEventListener('click',e=>editSectionName(e.target,s.id));sec.appendChild(hdr);
+    const cont=document.createElement('div');cont.dataset.sectionId=s.id;
+    for(const t of(tasks[s.id]||[]))cont.appendChild(buildListItem(t,s));sec.appendChild(cont);
+    const getPos=e=>{const all=[...cont.querySelectorAll('.list-item:not(.dragging)')];let ib=null,idx=all.length;for(let i=0;i<all.length;i++){const r=all[i].getBoundingClientRect();if(e.clientY<r.top+r.height/2){ib=all[i];idx=i;break}}return{ib,idx}};
+    const showInd=e=>{cont.querySelectorAll('.list-drop-line').forEach(x=>x.remove());const{ib}=getPos(e);const l=document.createElement('div');l.className='list-drop-line';ib?cont.insertBefore(l,ib):cont.appendChild(l)};
+    sec.addEventListener('dragover',e=>{e.preventDefault();showInd(e)});
+    sec.addEventListener('dragleave',e=>{if(!sec.contains(e.relatedTarget))cont.querySelectorAll('.list-drop-line').forEach(x=>x.remove())});
+    sec.addEventListener('drop',e=>{e.preventDefault();cont.querySelectorAll('.list-drop-line').forEach(x=>x.remove());const tid=parseFloat(e.dataTransfer.getData('text/plain'));if(!tid)return;moveTask(tid,s.id,getPos(e).idx)});
+    listView.appendChild(sec);
+  }
+  const addSec=document.createElement('div');addSec.className='list-add-section';addSec.textContent='+ Add section';
+  addSec.addEventListener('click',()=>promptAddSectionList(addSec));listView.appendChild(addSec);
+}
+
+function buildListItem(task,section){
+  const item=document.createElement('div');item.className='list-item';item.draggable=true;
+  item.innerHTML=`<span class="checkbox ${task.checked?'checked':''}"></span><div class="list-item-content"><div class="list-item-title ${task.checked?'done':''}">${esc(task.title)}</div>${task.note?`<div class="list-item-note">${esc(task.note)}</div>`:'<div class="list-item-note ph">+ Add note</div>'}</div><button class="list-del">&times;</button>`;
+  item.querySelector('.checkbox').addEventListener('click',()=>{task.checked=!task.checked;markChanged();renderTasks()});
+  item.querySelector('.list-item-title').addEventListener('click',()=>inlineEdit(item.querySelector('.list-item-title'),v=>{task.title=v;markChanged();renderTasks()},task.title));
+  item.querySelector('.list-item-note').addEventListener('click',()=>inlineEdit(item.querySelector('.list-item-note'),v=>{task.note=v;markChanged();renderTasks()},task.note||'','Add note...'));
+  item.querySelector('.list-del').addEventListener('click',()=>deleteTask(task));
+  item.addEventListener('dragstart',e=>{item.classList.add('dragging');e.dataTransfer.setData('text/plain',task.id)});
+  item.addEventListener('dragend',()=>item.classList.remove('dragging'));
+  return item;
+}
+
+function showSectionPicker(anchor){
+  document.querySelectorAll('.section-picker').forEach(x=>x.remove());
+  const picker=document.createElement('div');picker.className='section-picker';
+  const r=anchor.getBoundingClientRect();picker.style.top=(r.bottom+4)+'px';picker.style.right=(window.innerWidth-r.right)+'px';
+  for(const s of sections){const btn=document.createElement('button');btn.textContent=s.name;btn.addEventListener('click',()=>{quickAddSection=s.id;picker.remove();renderTasks();setTimeout(()=>document.getElementById('qaInput')?.focus(),10)});picker.appendChild(btn)}
+  document.body.appendChild(picker);
+  setTimeout(()=>document.addEventListener('click',function h(e){if(!picker.contains(e.target)){picker.remove();document.removeEventListener('click',h)}}),10);
+}
+
+// INLINE EDIT
+function inlineEdit(el,onSave,initial='',placeholder=''){
+  const input=document.createElement('input');input.type='text';input.value=initial||el.textContent;input.placeholder=placeholder;
+  input.style.cssText='width:100%;background:var(--card);border:2px solid var(--accent);border-radius:6px;padding:4px 8px;font-size:inherit;font-family:inherit;color:var(--t1);outline:none;';
+  el.replaceWith(input);input.focus();input.select();
+  let done=false;
+  const finish=()=>{if(done)return;done=true;onSave(input.value.trim())};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish()}else if(e.key==='Escape'){done=true;renderTasks()}});
+  input.addEventListener('blur',finish);
+}
+
+// TASK OPS
+function moveTask(id,toSection,idx=-1){
+  let task=null;
+  for(const s of sections){const arr=tasks[s.id]||[];const i=arr.findIndex(t=>t.id===id);if(i!==-1){[task]=arr.splice(i,1);break}}
+  if(!task)return;task.section=toSection;if(!tasks[toSection])tasks[toSection]=[];
+  idx>=0?tasks[toSection].splice(idx,0,task):tasks[toSection].push(task);
+  markChanged();renderTasks();
+}
+function deleteTask(task){
+  if(!confirm(`Delete "${task.title}"?`))return;
+  for(const s of sections){const arr=tasks[s.id]||[];const i=arr.findIndex(t=>t.id===task.id);if(i!==-1){arr.splice(i,1);break}}
+  markChanged();renderTasks();
+}
+
+// SECTION OPS
+function editSectionName(el,id){
+  const sec=sections.find(s=>s.id===id);if(!sec)return;
+  inlineEdit(el,newName=>{
+    if(!newName){renderTasks();return}
+    const oldId=sec.id;sec.name=newName;const newId=secId(newName);
+    if(newId!==oldId){tasks[newId]=tasks[oldId]||[];delete tasks[oldId];tasks[newId].forEach(t=>t.section=newId);sec.id=newId}
+    markChanged();renderTasks();
+  },sec.name);
+}
+function promptAddSection(el){
+  const input=document.createElement('input');input.type='text';input.placeholder='Section name...';
+  input.style.cssText='width:140px;background:var(--card);border:2px solid var(--accent);border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit;color:var(--t1);outline:none;';
+  el.innerHTML='';el.style.border='2px solid var(--accent)';el.appendChild(input);input.focus();
+  let done=false;
+  const finish=()=>{if(done)return;done=true;const n=input.value.trim();if(n){const id2=secId(n);if(!tasks[id2]){sections.push({id:id2,name:n});tasks[id2]=[];markChanged()}}renderTasks()};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish()}else if(e.key==='Escape'){done=true;renderTasks()}});
+  input.addEventListener('blur',finish);
+}
+function promptAddSectionList(el){
+  const input=document.createElement('input');input.type='text';input.placeholder='Section name...';
+  input.style.cssText='width:100%;background:var(--card);border:none;border-radius:8px;padding:12px;font-size:14px;font-family:inherit;color:var(--t1);outline:none;';
+  el.innerHTML='';el.style.border='2px solid var(--accent)';el.style.cursor='default';el.appendChild(input);input.focus();
+  let done=false;
+  const finish=()=>{if(done)return;done=true;const n=input.value.trim();if(n){const id2=secId(n);if(!tasks[id2]){sections.push({id:id2,name:n});tasks[id2]=[];markChanged()}}renderTasks()};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish()}else if(e.key==='Escape'){done=true;renderTasks()}});
+  input.addEventListener('blur',finish);
+}
+
+// ═══════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════
+async function initApp(){
+  await loadTasks();showApp();renderTasks();
+}
+
+window.addEventListener('beforeunload',e=>{if(hasChanges){e.preventDefault();e.returnValue=''}});
+
+cfg=loadConfig();
+if(cfg){
+  document.getElementById('cfgToken').value=cfg.token;
+  document.getElementById('cfgOwner').value=cfg.owner;
+  document.getElementById('cfgRepo').value=cfg.repo;
+  document.getElementById('cfgBranch').value=cfg.branch;
+  document.getElementById('cfgPath').value=cfg.path;
+  document.getElementById('cancelSettings').style.display='';
+  repoLabel.textContent=`${cfg.owner}/${cfg.repo}`;
+  settingsScreen.style.display='none';
+  initApp();
+}else{
+  settingsScreen.style.display='flex';
+}
+</script>
+</body>
+</html>
